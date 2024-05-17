@@ -111,7 +111,7 @@ func ensureNewlines(s string) string {
 	return strings.Replace(s, "\\n", "\n", -1)
 }
 
-func newMessage(c config) Message {
+func newMessage(c config) Message {	
 	msg := Message{
 		Channel: strings.TrimSpace(c.Channel),
 		Text:    c.Text,
@@ -149,7 +149,7 @@ func postMessage(conf config, msg Message) error {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		return err
-	}
+	}	
 	log.Debugf("Request to Slack: %s\n", b)
 
 	url := strings.TrimSpace(conf.WebhookURL)
@@ -271,12 +271,20 @@ func main() {
 	}
 
 	config := parseInputIntoConfig(&input)
+	channels := strings.Split(config.Channel, ",")		
+	index := 0
+	size := len(channels)
 
-	msg := newMessage(config)
-	if err := postMessage(config, msg); err != nil {
-		log.Errorf("Error: %s", err)
-		os.Exit(1)
+	for index < size {		
+		config.Channel = channels[index]
+		msg := newMessage(config)
+		log.Infof("Sending message to channel: %s\n", config.Channel)
+		if err := postMessage(config, msg); err != nil {
+			log.Errorf("Error: %s", err)
+			os.Exit(1)
+		}
+		index ++
 	}
-
+	
 	log.Donef("\nSlack message successfully sent! 🚀\n")
 }
